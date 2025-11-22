@@ -8,7 +8,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
-import FileClaim from "./pages/FileClaim";
+import FileClaim from "./pages/FileClaimNew";
 import TrackClaims from "./pages/TrackClaims";
 import Notifications from "./pages/Notifications";
 import Profile from "./pages/Profile";
