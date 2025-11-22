@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, Clock, CheckCircle, XCircle, Calendar, DollarSign } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { Progress } from "@/components/ui/progress";
 
 const TrackClaims = () => {
@@ -81,10 +82,10 @@ const TrackClaims = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 flex-1">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Track Claims</h1>
           <p className="text-muted-foreground">Monitor the status of your insurance claims</p>
@@ -184,6 +185,8 @@ const TrackClaims = () => {
           ))}
         </Tabs>
       </div>
+
+      <Footer />
     </div>
   );
 };
