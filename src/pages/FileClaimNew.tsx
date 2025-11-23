@@ -24,6 +24,7 @@ const claimSchema = z.object({
       today.setHours(0, 0, 0, 0);
       return selectedDate <= today;
     }, "Incident date cannot be in the future"),
+  incidentTime: z.string().min(1, "Incident time is required"),
   amount: z.string()
     .min(1, "Claim amount is required")
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, "Amount must be a positive number")
@@ -38,6 +39,14 @@ const claimSchema = z.object({
   contactPhone: z.string()
     .min(10, "Phone number must be at least 10 digits")
     .regex(/^[\d\s\-\+\(\)]+$/, "Invalid phone number format"),
+  contactEmail: z.string().email("Invalid email address"),
+  incidentLocation: z.string().min(5, "Incident location must be at least 5 characters"),
+  policeReportNumber: z.string().optional(),
+  witnessName: z.string().optional(),
+  witnessPhone: z.string()
+    .regex(/^[\d\s\-\+\(\)]*$/, "Invalid phone number format")
+    .optional()
+    .or(z.literal("")),
 });
 
 type ClaimFormData = z.infer<typeof claimSchema>;
@@ -59,10 +68,16 @@ const FileClaim = () => {
   const [formData, setFormData] = useState<ClaimFormData>({
     claimType: "",
     incidentDate: "",
+    incidentTime: "",
     amount: "",
     description: "",
     policyNumber: "",
     contactPhone: "",
+    contactEmail: "",
+    incidentLocation: "",
+    policeReportNumber: "",
+    witnessName: "",
+    witnessPhone: "",
   });
   const [errors, setErrors] = useState<Partial<Record<keyof ClaimFormData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -242,7 +257,7 @@ const FileClaim = () => {
           <Alert className="mb-6 border-primary/20 bg-primary/5">
             <AlertCircle className="h-4 w-4 text-primary" />
             <AlertDescription className="text-sm">
-              Please ensure all information is accurate. You can upload up to 10 supporting documents (max 10MB each).
+              <strong>Important:</strong> Please ensure all information is accurate and complete. You can upload up to 10 supporting documents (max 10MB each). Fields marked with * are required.
             </AlertDescription>
           </Alert>
 
@@ -329,6 +344,28 @@ const FileClaim = () => {
                     )}
                   </div>
 
+                  {/* Incident Time */}
+                  <div className="space-y-2">
+                    <Label htmlFor="incidentTime" className="flex items-center gap-1">
+                      Incident Time <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="incidentTime"
+                      type="time"
+                      value={formData.incidentTime}
+                      onChange={(e) => handleChange("incidentTime", e.target.value)}
+                      className={hasError("incidentTime") ? "border-destructive" : ""}
+                    />
+                    {hasError("incidentTime") && (
+                      <p className="text-sm text-destructive flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {getErrorMessage("incidentTime")}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
                   {/* Claim Amount */}
                   <div className="space-y-2">
                     <Label htmlFor="amount" className="flex items-center gap-1">
@@ -352,25 +389,39 @@ const FileClaim = () => {
                       </p>
                     )}
                   </div>
+
+                  {/* Police Report Number */}
+                  <div className="space-y-2">
+                    <Label htmlFor="policeReportNumber">
+                      Police Report Number (Optional)
+                    </Label>
+                    <Input
+                      id="policeReportNumber"
+                      type="text"
+                      placeholder="e.g., PR-2024-5678"
+                      value={formData.policeReportNumber}
+                      onChange={(e) => handleChange("policeReportNumber", e.target.value)}
+                    />
+                  </div>
                 </div>
 
-                {/* Contact Phone */}
+                {/* Incident Location */}
                 <div className="space-y-2">
-                  <Label htmlFor="contactPhone" className="flex items-center gap-1">
-                    Contact Phone <span className="text-destructive">*</span>
+                  <Label htmlFor="incidentLocation" className="flex items-center gap-1">
+                    Incident Location <span className="text-destructive">*</span>
                   </Label>
                   <Input
-                    id="contactPhone"
-                    type="tel"
-                    placeholder="+1 (555) 123-4567"
-                    value={formData.contactPhone}
-                    onChange={(e) => handleChange("contactPhone", e.target.value)}
-                    className={hasError("contactPhone") ? "border-destructive" : ""}
+                    id="incidentLocation"
+                    type="text"
+                    placeholder="Full address or detailed location"
+                    value={formData.incidentLocation}
+                    onChange={(e) => handleChange("incidentLocation", e.target.value)}
+                    className={hasError("incidentLocation") ? "border-destructive" : ""}
                   />
-                  {hasError("contactPhone") && (
+                  {hasError("incidentLocation") && (
                     <p className="text-sm text-destructive flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
-                      {getErrorMessage("contactPhone")}
+                      {getErrorMessage("incidentLocation")}
                     </p>
                   )}
                 </div>
@@ -382,7 +433,7 @@ const FileClaim = () => {
                   </Label>
                   <Textarea
                     id="description"
-                    placeholder="Provide a detailed description of the incident (minimum 20 characters)..."
+                    placeholder="Provide a detailed description of the incident, including what happened, how it occurred, and any other relevant details (minimum 20 characters)..."
                     rows={6}
                     value={formData.description}
                     onChange={(e) => handleChange("description", e.target.value)}
@@ -398,6 +449,101 @@ const FileClaim = () => {
                     ) : (
                       <p className="text-sm text-muted-foreground">
                         {formData.description.length}/1000 characters
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Contact Information Card */}
+            <Card className="border-border shadow-soft mb-6">
+              <CardHeader>
+                <CardTitle>Contact Information</CardTitle>
+                <CardDescription>How can we reach you regarding this claim?</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Contact Phone */}
+                  <div className="space-y-2">
+                    <Label htmlFor="contactPhone" className="flex items-center gap-1">
+                      Contact Phone <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="contactPhone"
+                      type="tel"
+                      placeholder="+1 (555) 123-4567"
+                      value={formData.contactPhone}
+                      onChange={(e) => handleChange("contactPhone", e.target.value)}
+                      className={hasError("contactPhone") ? "border-destructive" : ""}
+                    />
+                    {hasError("contactPhone") && (
+                      <p className="text-sm text-destructive flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {getErrorMessage("contactPhone")}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Contact Email */}
+                  <div className="space-y-2">
+                    <Label htmlFor="contactEmail" className="flex items-center gap-1">
+                      Contact Email <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="contactEmail"
+                      type="email"
+                      placeholder="your.email@example.com"
+                      value={formData.contactEmail}
+                      onChange={(e) => handleChange("contactEmail", e.target.value)}
+                      className={hasError("contactEmail") ? "border-destructive" : ""}
+                    />
+                    {hasError("contactEmail") && (
+                      <p className="text-sm text-destructive flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {getErrorMessage("contactEmail")}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Witness Information Card */}
+            <Card className="border-border shadow-soft mb-6">
+              <CardHeader>
+                <CardTitle>Witness Information (Optional)</CardTitle>
+                <CardDescription>If there were any witnesses, please provide their details</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Witness Name */}
+                  <div className="space-y-2">
+                    <Label htmlFor="witnessName">Witness Name</Label>
+                    <Input
+                      id="witnessName"
+                      type="text"
+                      placeholder="Full name of witness"
+                      value={formData.witnessName}
+                      onChange={(e) => handleChange("witnessName", e.target.value)}
+                    />
+                  </div>
+
+                  {/* Witness Phone */}
+                  <div className="space-y-2">
+                    <Label htmlFor="witnessPhone">Witness Phone</Label>
+                    <Input
+                      id="witnessPhone"
+                      type="tel"
+                      placeholder="+1 (555) 123-4567"
+                      value={formData.witnessPhone}
+                      onChange={(e) => handleChange("witnessPhone", e.target.value)}
+                      className={hasError("witnessPhone") ? "border-destructive" : ""}
+                    />
+                    {hasError("witnessPhone") && (
+                      <p className="text-sm text-destructive flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {getErrorMessage("witnessPhone")}
                       </p>
                     )}
                   </div>
