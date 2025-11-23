@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Shield, Home, FileText, Clock, Bell, User, LogOut, Menu, X } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,11 +18,18 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { logout, user } = useAuth();
+  const { toast } = useToast();
 
   const isActive = (path: string) => location.pathname === path;
 
   const handleLogout = () => {
+    logout();
     setMobileMenuOpen(false);
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out.",
+    });
     navigate("/");
   };
 
@@ -81,14 +90,14 @@ const Navbar = () => {
                   <div className="h-8 w-8 rounded-full bg-gradient-primary flex items-center justify-center">
                     <User className="h-4 w-4 text-white" />
                   </div>
-                  <span className="text-sm font-medium">John Doe</span>
+                  <span className="text-sm font-medium">{user?.name || "User"}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
                   <div className="flex flex-col">
-                    <span className="font-semibold">John Doe</span>
-                    <span className="text-xs text-muted-foreground font-normal">john.doe@example.com</span>
+                    <span className="font-semibold">{user?.name || "User"}</span>
+                    <span className="text-xs text-muted-foreground font-normal">{user?.email || ""}</span>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -126,8 +135,8 @@ const Navbar = () => {
                       <User className="h-6 w-6 text-white" />
                     </div>
                     <div className="flex flex-col">
-                      <span className="font-semibold text-foreground">John Doe</span>
-                      <span className="text-xs text-muted-foreground">john.doe@example.com</span>
+                      <span className="font-semibold text-foreground">{user?.name || "User"}</span>
+                      <span className="text-xs text-muted-foreground">{user?.email || ""}</span>
                     </div>
                   </div>
                   

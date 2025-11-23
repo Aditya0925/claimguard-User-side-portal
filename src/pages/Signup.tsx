@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Shield, ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -17,6 +18,7 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -36,8 +38,8 @@ const Signup = () => {
       return;
     }
 
-    // Simulate signup - replace with actual authentication
     setTimeout(() => {
+      login(formData.email, formData.fullName);
       toast({
         title: "Account created!",
         description: "Welcome to claimGuard. Let's get started.",
