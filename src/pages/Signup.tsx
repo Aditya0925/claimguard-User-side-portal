@@ -7,6 +7,7 @@ import { Shield, ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import PasswordStrengthIndicator from "@/components/PasswordStrengthIndicator";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -111,6 +112,7 @@ const Signup = () => {
                   required
                   className="h-11"
                 />
+                <PasswordStrengthIndicator password={formData.password} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
